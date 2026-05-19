@@ -1,0 +1,58 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Global catch-all deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Helper functions
+    function isValidId(id) { 
+      return id is string && id.size() >= 2 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$'); 
+    }
+    function isSignedIn() { 
+      return request.auth != null; 
+    }
+    function incoming() { 
+      return request.resource.data; 
+    }
+    function existing() { 
+      return resource.data; 
+    }
+
+    // Staff Entity Validation
+    function isValidStaff(data) {
+      return data.keys().hasAll(['id', 'name', 'position', 'role']) 
+        && data.keys().size() <= 6
+        && data.id is string && data.id.size() >= 2
+        && data.name is string && data.name.size() >= 1
+        && data.position is string
+        && data.role in ['staff', 'admin'];
+    }
+
+    // Attendance Record Entity Validation
+    function isValidRecord(data) {
+      return data.keys().hasAll(['id', 'userId', 'type', 'timestamp', 'gps'])
+        && data.id is string
+        && data.userId is string
+        && data.type in ['check-in', 'check-out', 'field-work', 'leave']
+        && data.timestamp is string
+        && data.gps is string;
+    }
+
+    // Collection: Staff
+    match /staff/{staffId} {
+      allow get: if true; // Needed for login check
+      allow list: if true; // Needed for admin dashboard
+      allow create, update: if isValidStaff(incoming());
+      allow delete: if true; // Admin can delete
+    }
+
+    // Collection: Records
+    match /records/{recordId} {
+      allow read: if true;
+      allow create, update: if true;
+      allow delete: if true;
+    }
+  }
+}

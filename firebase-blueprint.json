@@ -1,0 +1,39 @@
+{
+  "entities": {
+    "Staff": {
+      "title": "Staff Profile",
+      "description": "System-authorized personnel profile",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Normalized Staff ID" },
+        "name": { "type": "string" },
+        "position": { "type": "string" },
+        "role": { "type": "string", "enum": ["staff", "admin"] }
+      },
+      "required": ["id", "name", "position", "role"]
+    },
+    "AttendanceRecord": {
+      "title": "Attendance Record",
+      "description": "Digital log of attendance activity",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "type": { "type": "string", "enum": ["check-in", "check-out", "field-work", "leave"] },
+        "timestamp": { "type": "string", "format": "date-time" },
+        "gps": { "type": "string" },
+        "details": { "type": "object" }
+      },
+      "required": ["userId", "type", "timestamp", "gps"]
+    }
+  },
+  "firestore": {
+    "/staff/{staffId}": {
+      "schema": "Staff",
+      "description": "Authorized staff directory"
+    },
+    "/records/{recordId}": {
+      "schema": "AttendanceRecord",
+      "description": "Global attendance logs"
+    }
+  }
+}
